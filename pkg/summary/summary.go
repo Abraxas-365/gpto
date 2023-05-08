@@ -14,6 +14,7 @@ func Create(body string, calledFunctionsSummaries []string) string {
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println("SUMARY CHAIN: ", body)
 	refineSummaryChain, err := NewRefineSummaryChain()
 	if err != nil {
 		fmt.Println(err)
@@ -26,6 +27,7 @@ func Create(body string, calledFunctionsSummaries []string) string {
 	})
 	if err != nil {
 		fmt.Println(err)
+		return ""
 	}
 
 	if len(calledFunctionsSummaries) != 0 {
@@ -37,8 +39,9 @@ func Create(body string, calledFunctionsSummaries []string) string {
 		if err != nil {
 			fmt.Println(err)
 		}
+		fmt.Println("REFINED SUMMARY: ", refinedSummary["text"].(string))
 		return refinedSummary["text"].(string)
 	}
-
+	fmt.Println("SUMMARY: ", summary["text"].(string))
 	return summary["text"].(string)
 }
