@@ -76,7 +76,7 @@ func extractFunctionCalls(node *sitter.Node, content []byte) []string {
 	return calls
 }
 
-func (v *FuncVisitor) ParseGoFile(content []byte, rootNode *sitter.Node) {
+func (v *FuncVisitor) ParseFile(content []byte, rootNode *sitter.Node) {
 	// Extract and process function data
 	v.PackageName = extractPackageName(rootNode, content)
 	extractFunctions(rootNode, content, v)

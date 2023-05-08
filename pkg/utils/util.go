@@ -42,7 +42,7 @@ func NewFunctionIndexer(directory string, summaryFuntion func(string, []string) 
 			Nodes: nodes,
 		}
 
-		visitor.ParseGoFile(content, rootNode)
+		visitor.ParseFile(content, rootNode)
 		return nil
 	})
 
