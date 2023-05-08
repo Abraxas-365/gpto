@@ -34,6 +34,15 @@ func extractFunctions(node *sitter.Node, content []byte, v *FuncVisitor) {
 		if v.FuncFound != nil {
 			v.FuncFound(qualifiedFuncName)
 		}
+
+		functionCalls := extractFunctionCalls(node, content)
+		for _, calledFunc := range functionCalls {
+			calledFuncName := calledFunc
+			fmt.Println("qualifiedFuncName:", qualifiedFuncName, "call:", calledFuncName)
+			if calledNode, ok := v.Nodes[calledFuncName]; ok {
+				v.Graph.SetEdge(simple.Edge{F: v.Nodes[qualifiedFuncName], T: calledNode})
+			}
+		}
 	}
 
 	// Recurse into child nodes
@@ -42,6 +51,31 @@ func extractFunctions(node *sitter.Node, content []byte, v *FuncVisitor) {
 		extractFunctions(child, content, v)
 	}
 }
+
+func extractFunctionCalls(node *sitter.Node, content []byte) []string {
+	var calls []string
+
+	if node.Type() == "call_expression" {
+		for i := 0; i < int(node.ChildCount()); i++ {
+			child := node.Child(i)
+			fmt.Println("child", i, child.Type())
+			if child.Type() == "selector_expression" {
+				callName := string(content[child.StartByte():child.EndByte()])
+				calls = append(calls, callName)
+			}
+		}
+	}
+
+	// Recurse into child nodes
+	for i := 0; i < int(node.ChildCount()); i++ {
+		child := node.Child(i)
+		childCalls := extractFunctionCalls(child, content)
+		calls = append(calls, childCalls...)
+	}
+
+	return calls
+}
+
 func (v *FuncVisitor) ParseGoFile(content []byte, rootNode *sitter.Node) {
 	// Extract and process function data
 	v.PackageName = extractPackageName(rootNode, content)
