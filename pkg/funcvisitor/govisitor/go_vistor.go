@@ -10,15 +10,19 @@ import (
 )
 
 type GoFuncVisitor struct {
-	Graph       *simple.DirectedGraph
-	Nodes       map[string]*funcnode.FuncNode
 	PackageName string
 	FuncFound   func(functionName string)
 }
 
 var _ funcvisitor.FuncVisitor = (*GoFuncVisitor)(nil)
 
-func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor) {
+func (v *GoFuncVisitor) ParseFile(content []byte, rootNode *sitter.Node, graph *simple.DirectedGraph, nodes map[string]*funcnode.FuncNode) {
+	// Extract and process function data
+	v.PackageName = extractPackageName(rootNode, content)
+	extractFunctions(rootNode, content, v, graph, nodes)
+}
+
+func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor, graph *simple.DirectedGraph, nodes map[string]*funcnode.FuncNode) {
 	if node.Type() == "function_declaration" {
 		nameNode := node.ChildByFieldName("name")
 		name := string(content[nameNode.StartByte():nameNode.EndByte()])
@@ -27,10 +31,10 @@ func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor) {
 
 		functionBody := string(content[node.StartByte():node.EndByte()])
 
-		if _, ok := v.Nodes[qualifiedFuncName]; !ok {
-			newNode := v.Graph.NewNode()
-			v.Nodes[qualifiedFuncName] = &funcnode.FuncNode{Node: newNode, Name: qualifiedFuncName, Body: functionBody}
-			v.Graph.AddNode(v.Nodes[qualifiedFuncName])
+		if _, ok := nodes[qualifiedFuncName]; !ok {
+			newNode := graph.NewNode()
+			nodes[qualifiedFuncName] = &funcnode.FuncNode{Node: newNode, Name: qualifiedFuncName, Body: functionBody}
+			graph.AddNode(nodes[qualifiedFuncName])
 		}
 
 		// Call the FuncFound function if it's set
@@ -42,8 +46,8 @@ func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor) {
 		for _, calledFunc := range functionCalls {
 			calledFuncName := calledFunc
 			fmt.Println("qualifiedFuncName:", qualifiedFuncName, "call:", calledFuncName)
-			if calledNode, ok := v.Nodes[calledFuncName]; ok {
-				v.Graph.SetEdge(simple.Edge{F: v.Nodes[qualifiedFuncName], T: calledNode})
+			if calledNode, ok := nodes[calledFuncName]; ok {
+				graph.SetEdge(simple.Edge{F: nodes[qualifiedFuncName], T: calledNode})
 			}
 		}
 	}
@@ -51,7 +55,7 @@ func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor) {
 	// Recurse into child nodes
 	for i := 0; i < int(node.ChildCount()); i++ {
 		child := node.Child(i)
-		extractFunctions(child, content, v)
+		extractFunctions(child, content, v, graph, nodes)
 	}
 }
 
@@ -77,12 +81,6 @@ func extractFunctionCalls(node *sitter.Node, content []byte) []string {
 	}
 
 	return calls
-}
-
-func (v *GoFuncVisitor) ParseFile(content []byte, rootNode *sitter.Node) {
-	// Extract and process function data
-	v.PackageName = extractPackageName(rootNode, content)
-	extractFunctions(rootNode, content, v)
 }
 
 func extractPackageName(node *sitter.Node, content []byte) string {
