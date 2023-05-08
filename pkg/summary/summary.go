@@ -28,10 +28,17 @@ func Create(body string, calledFunctionsSummaries []string) string {
 		fmt.Println(err)
 	}
 
-	refinedSummary, err := chains.Call(ctx, refineSummaryChain, map[string]any{
-		"function_summary":           summary,
-		"called_functions_summaries": calledFunctionSummariesString,
-	})
+	if len(calledFunctionsSummaries) != 0 {
+		refinedSummary, err := chains.Call(ctx, refineSummaryChain, map[string]any{
+			"function_summary":           summary["text"].(string),
+			"called_functions_summaries": calledFunctionSummariesString,
+		})
 
-	return refinedSummary["text"].(string)
+		if err != nil {
+			fmt.Println(err)
+		}
+		return refinedSummary["text"].(string)
+	}
+
+	return summary["text"].(string)
 }
