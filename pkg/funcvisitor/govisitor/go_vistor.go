@@ -26,7 +26,7 @@ func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor, graph
 	if node.Type() == "function_declaration" || node.Type() == "method_declaration" {
 		nameNode := node.ChildByFieldName("name")
 		if node.Type() == "method_declaration" {
-			node = node.ChildByFieldName("name")
+			nameNode = node.ChildByFieldName("name")
 		}
 
 		name := string(content[nameNode.StartByte():nameNode.EndByte()])
@@ -34,6 +34,7 @@ func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor, graph
 		fmt.Println(qualifiedFuncName)
 
 		functionBody := string(content[node.StartByte():node.EndByte()])
+		fmt.Println("Body: ", functionBody)
 
 		if _, ok := nodes[qualifiedFuncName]; !ok {
 			newNode := graph.NewNode()
