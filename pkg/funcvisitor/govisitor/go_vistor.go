@@ -23,8 +23,12 @@ func (v *GoFuncVisitor) ParseFile(content []byte, rootNode *sitter.Node, graph *
 }
 
 func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor, graph *simple.DirectedGraph, nodes map[string]*funcnode.FuncNode) {
-	if node.Type() == "function_declaration" {
+	if node.Type() == "function_declaration" || node.Type() == "method_declaration" {
 		nameNode := node.ChildByFieldName("name")
+		if node.Type() == "method_declaration" {
+			node = node.ChildByFieldName("name")
+		}
+
 		name := string(content[nameNode.StartByte():nameNode.EndByte()])
 		qualifiedFuncName := v.PackageName + "." + name
 		fmt.Println(qualifiedFuncName)
@@ -45,7 +49,6 @@ func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor, graph
 		functionCalls := extractFunctionCalls(node, content)
 		for _, calledFunc := range functionCalls {
 			calledFuncName := calledFunc
-			fmt.Println("qualifiedFuncName:", qualifiedFuncName, "call:", calledFuncName)
 			if calledNode, ok := nodes[calledFuncName]; ok {
 				graph.SetEdge(simple.Edge{F: nodes[qualifiedFuncName], T: calledNode})
 			}
@@ -65,7 +68,6 @@ func extractFunctionCalls(node *sitter.Node, content []byte) []string {
 	if node.Type() == "call_expression" {
 		for i := 0; i < int(node.ChildCount()); i++ {
 			child := node.Child(i)
-			fmt.Println("child", i, child.Type())
 			if child.Type() == "selector_expression" {
 				callName := string(content[child.StartByte():child.EndByte()])
 				calls = append(calls, callName)
