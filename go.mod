@@ -6,3 +6,5 @@ require (
 	github.com/smacker/go-tree-sitter v0.0.0-20230501083651-a7d92773b3aa
 	gonum.org/v1/gonum v0.13.0
 )
+
+require github.com/tmc/langchaingo v0.0.0-20230507201649-29172fb26277 // indirect
