@@ -13,7 +13,7 @@ import (
 	"gonum.org/v1/gonum/graph/simple"
 )
 
-func NewFunctionIndexer(directory string, summaryFuntion func(string, []string) string) ([]funcnode.FuncNode, error) {
+func NewFunctionIndexer(directory string, visitor funcvisitor.FuncVisitor, summaryFuntion func(string, []string) string) ([]funcnode.FuncNode, error) {
 	parser := sitter.NewParser()
 	parser.SetLanguage(golang.GetLanguage())
 
@@ -36,11 +36,6 @@ func NewFunctionIndexer(directory string, summaryFuntion func(string, []string) 
 
 		tree := parser.Parse(nil, content)
 		rootNode := tree.RootNode()
-
-		visitor := &funcvisitor.FuncVisitor{
-			Graph: g,
-			Nodes: nodes,
-		}
 
 		visitor.ParseFile(content, rootNode)
 		return nil
