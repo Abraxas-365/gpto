@@ -14,7 +14,6 @@ func Create(body string, calledFunctionsSummaries []string) string {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	refineSummaryChain, err := NewRefineSummaryChain()
 	if err != nil {
 		fmt.Println(err)

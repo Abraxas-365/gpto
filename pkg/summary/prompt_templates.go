@@ -13,12 +13,12 @@ const RefinePromptTemplate = `
 
 	We have provided you an existing summary up to a certain point:
 
-	{function_summary}
+	{{.function_summary}}
 
 	This summary may reference the call to some functions.
 	We have the opportunity to refine the existing summary (only if needed) with the summaries of the called functions below.
 
-	{called_functions_summaries}
+	{{.called_functions_summaries}}
 
 	Given the new context refine the original summary.
 	If no refinement is needed return the original function.
@@ -37,5 +37,7 @@ const PromptTemplate = `
 
 	Summarize the following function:
 
-	{function}
+	{{.function}}
+
+
 	`
