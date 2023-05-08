@@ -13,12 +13,9 @@ import (
 	"gonum.org/v1/gonum/graph/simple"
 )
 
-func NewFunctionIndexer(directory string, visitor funcvisitor.FuncVisitor, summaryFuntion func(string, []string) string) ([]funcnode.FuncNode, error) {
+func NewFunctionIndexer(directory string, v funcvisitor.Visitor, summaryFuntion func(string, []string) string) ([]funcnode.FuncNode, error) {
 	parser := sitter.NewParser()
 	parser.SetLanguage(golang.GetLanguage())
-
-	g := simple.NewDirectedGraph()
-	nodes := make(map[string]*funcnode.FuncNode)
 
 	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -37,7 +34,7 @@ func NewFunctionIndexer(directory string, visitor funcvisitor.FuncVisitor, summa
 		tree := parser.Parse(nil, content)
 		rootNode := tree.RootNode()
 
-		visitor.ParseFile(content, rootNode)
+		v.Visitor.ParseFile(content, rootNode, v.Graph, v.Nodes)
 		return nil
 	})
 
@@ -48,12 +45,12 @@ func NewFunctionIndexer(directory string, visitor funcvisitor.FuncVisitor, summa
 
 	nodeList := []funcnode.FuncNode{}
 
-	for _, node := range nodes {
+	for _, node := range v.Nodes {
 		if len(node.Body) == 0 {
 			continue
 		}
 		if node.Summary == "" {
-			getNodeSummary(node, g, summaryFuntion)
+			getNodeSummary(node, v.Graph, summaryFuntion)
 		}
 		nodeList = append(nodeList, *node)
 		fmt.Printf("Function: %s\nCombined Body:\n%s\n\n", node.Name, node.Body)
