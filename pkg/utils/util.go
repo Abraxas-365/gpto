@@ -53,7 +53,6 @@ func NewFunctionIndexer(directory string, v funcvisitor.Visitor, summaryFuntion 
 			getNodeSummary(node, v.Graph, summaryFuntion)
 		}
 		nodeList = append(nodeList, *node)
-		fmt.Printf("Function: %s\nCombined Body:\n%s\n\n", node.Name, node.Body)
 	}
 
 	return nodeList, nil
