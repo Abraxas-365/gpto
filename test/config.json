@@ -1,0 +1,11 @@
+{
+  "magento_url": "https://local.abcdin245.cl",
+  "magento_db_uri": "magento:magento@tcp(127.0.0.1:3307)/magento",
+  "magento_user": "admin",
+  "magento_password": "admin12345",
+  "akeneo_secret": "Nl8yN2t5NGZqcHpwMGt3MG9nd2c0OGMwazg0ODhrd2NrazB3Z3c0MGswd3c4Z29vZ2M4azo1dHJzemFtd2syc2tnNGs0NDRrOGNjczRzODg4Y28wNHM0azhvbzR3NGM4azBnY2Nrdw==",
+  "akeneo_url": "http://ec2-54-160-136-150.compute-1.amazonaws.com",
+  "akeneo_user": "conetor_api_1613",
+  "akeneo_password": "c8461b046",
+  "akeneo_db_uri": "root:j1o9MeojcN9p@tcp(127.0.0.1:8888)/bitnami_akeneo"
+}
