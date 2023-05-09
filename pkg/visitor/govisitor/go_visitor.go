@@ -3,42 +3,42 @@ package govisitor
 import (
 	"fmt"
 
-	"github.com/Abraxas-365/gpto/pkg/funcnode"
-	"github.com/Abraxas-365/gpto/pkg/funcvisitor"
+	"github.com/Abraxas-365/gpto/pkg/schema"
+	"github.com/Abraxas-365/gpto/pkg/visitor"
 	sitter "github.com/smacker/go-tree-sitter"
 	"gonum.org/v1/gonum/graph/simple"
 )
 
-type GoFuncVisitor struct {
+type GoVisitor struct {
 	PackageName string
 	FuncFound   func(functionName string)
 }
 
-var _ funcvisitor.FuncVisitor = (*GoFuncVisitor)(nil)
+var _ visitor.FileVisitor = (*GoVisitor)(nil)
 
-func (v *GoFuncVisitor) ParseFile(content []byte, rootNode *sitter.Node, graph *simple.DirectedGraph, nodes map[string]*funcnode.FuncNode) {
+func (v *GoVisitor) ParseFile(content []byte, rootNode *sitter.Node, graph *simple.DirectedGraph, nodes map[string]*schema.Node) {
 	// Extract and process function data
 	v.PackageName = extractPackageName(rootNode, content)
 	extractFunctions(rootNode, content, v, graph, nodes)
 }
 
-func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor, graph *simple.DirectedGraph, nodes map[string]*funcnode.FuncNode) {
-	if node.Type() == "function_declaration" || node.Type() == "method_declaration" {
-		nameNode := node.ChildByFieldName("name")
-		if node.Type() == "method_declaration" {
-			nameNode = node.ChildByFieldName("name")
+func extractFunctions(tsnode *sitter.Node, content []byte, v *GoVisitor, graph *simple.DirectedGraph, nodes map[string]*schema.Node) {
+	if tsnode.Type() == "function_declaration" || tsnode.Type() == "method_declaration" {
+		nameNode := tsnode.ChildByFieldName("name")
+		if tsnode.Type() == "method_declaration" {
+			nameNode = tsnode.ChildByFieldName("name")
 		}
 
 		name := string(content[nameNode.StartByte():nameNode.EndByte()])
 		qualifiedFuncName := v.PackageName + "." + name
 		fmt.Println(qualifiedFuncName)
 
-		functionBody := string(content[node.StartByte():node.EndByte()])
+		functionBody := string(content[tsnode.StartByte():tsnode.EndByte()])
 		fmt.Println("Body: ", functionBody)
 
 		if _, ok := nodes[qualifiedFuncName]; !ok {
 			newNode := graph.NewNode()
-			nodes[qualifiedFuncName] = &funcnode.FuncNode{Node: newNode, Name: qualifiedFuncName, Body: functionBody}
+			nodes[qualifiedFuncName] = &schema.Node{Node: newNode, Name: qualifiedFuncName, Body: functionBody}
 			graph.AddNode(nodes[qualifiedFuncName])
 		}
 
@@ -47,7 +47,7 @@ func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor, graph
 			v.FuncFound(qualifiedFuncName)
 		}
 
-		functionCalls := extractFunctionCalls(node, content)
+		functionCalls := extractFunctionCalls(tsnode, content)
 		for _, calledFunc := range functionCalls {
 			calledFuncName := calledFunc
 			if calledNode, ok := nodes[calledFuncName]; ok {
@@ -57,8 +57,8 @@ func extractFunctions(node *sitter.Node, content []byte, v *GoFuncVisitor, graph
 	}
 
 	// Recurse into child nodes
-	for i := 0; i < int(node.ChildCount()); i++ {
-		child := node.Child(i)
+	for i := 0; i < int(tsnode.ChildCount()); i++ {
+		child := tsnode.Child(i)
 		extractFunctions(child, content, v, graph, nodes)
 	}
 }

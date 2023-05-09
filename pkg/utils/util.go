@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Abraxas-365/gpto/pkg/funcnode"
-	"github.com/Abraxas-365/gpto/pkg/funcvisitor"
+	"github.com/Abraxas-365/gpto/pkg/schema"
+	"github.com/Abraxas-365/gpto/pkg/visitor"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/smacker/go-tree-sitter/golang"
 	"gonum.org/v1/gonum/graph/simple"
 )
 
-func NewFunctionIndexer(directory string, v funcvisitor.Visitor, summaryFuntion func(string, []string) string) ([]funcnode.FuncNode, error) {
+func NewIndexer(directory string, v visitor.Visitor, summaryFuntion func(string, []string) string) ([]schema.Node, error) {
 	parser := sitter.NewParser()
 	parser.SetLanguage(golang.GetLanguage())
 
@@ -43,7 +43,7 @@ func NewFunctionIndexer(directory string, v funcvisitor.Visitor, summaryFuntion 
 		return nil, err
 	}
 
-	nodeList := []funcnode.FuncNode{}
+	nodeList := []schema.Node{}
 
 	for _, node := range v.Nodes {
 		if len(node.Body) == 0 {
@@ -58,7 +58,7 @@ func NewFunctionIndexer(directory string, v funcvisitor.Visitor, summaryFuntion 
 	return nodeList, nil
 }
 
-func getNodeSummary(node *funcnode.FuncNode, g *simple.DirectedGraph, summaryFuntion func(string, []string) string) string {
+func getNodeSummary(node *schema.Node, g *simple.DirectedGraph, summaryFuntion func(string, []string) string) string {
 	if node.Summary != "" {
 		return node.Summary
 	}
@@ -67,7 +67,7 @@ func getNodeSummary(node *funcnode.FuncNode, g *simple.DirectedGraph, summaryFun
 
 	fromEdges := g.From(node.ID())
 	for fromEdges.Next() {
-		target := fromEdges.Node().(*funcnode.FuncNode)
+		target := fromEdges.Node().(*schema.Node)
 		if len(target.Body) > 0 {
 			calledSummaries = append(calledSummaries, getNodeSummary(target, g, summaryFuntion))
 		}

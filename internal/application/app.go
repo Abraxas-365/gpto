@@ -7,7 +7,7 @@ import (
 
 	"github.com/Abraxas-365/gpto/internal/domain/ports"
 	"github.com/Abraxas-365/gpto/internal/domain/ports/models"
-	"github.com/Abraxas-365/gpto/pkg/funcnode"
+	"github.com/Abraxas-365/gpto/pkg/schema"
 	"github.com/tmc/langchaingo/embeddings"
 	"github.com/tmc/langchaingo/llms/openai"
 )
@@ -37,7 +37,7 @@ func NewApp(repo ports.RepoInterface) (*App, error) {
 }
 
 //TODO: check if function exist and if it exit check if function is equal, if its equal skip the embedding and save process
-func (a *App) SaveMetaData(node funcnode.FuncNode) error {
+func (a *App) SaveMetaData(node schema.Node) error {
 	ctx := context.Background()
 
 	embedding, err := a.embedder.EmbedQuery(ctx, node.Summary)
@@ -53,13 +53,13 @@ func (a *App) SaveMetaData(node funcnode.FuncNode) error {
 	return nil
 }
 
-func (a *App) SaveMetadataConcurrently(nodes []funcnode.FuncNode) error {
+func (a *App) SaveMetadataConcurrently(nodes []schema.Node) error {
 	var wg sync.WaitGroup
 	errorCh := make(chan error, len(nodes))
 
 	for _, node := range nodes {
 		wg.Add(1)
-		go func(node funcnode.FuncNode) {
+		go func(node schema.Node) {
 			defer wg.Done()
 			if err := a.SaveMetaData(node); err != nil {
 				errorCh <- err

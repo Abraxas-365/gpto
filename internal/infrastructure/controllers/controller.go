@@ -18,6 +18,7 @@ func ControllerFactory(fiberApp *fiber.App, app application.App) {
 		}
 
 		answer, err := app.Chat(requestBody.Query)
+
 		if err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": err})
 		}
